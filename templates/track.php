@@ -18,7 +18,7 @@
 
 			$.post( analytics.ajaxurl, data, success );
 		});
-
+		
   		<?php
 	endif;
   ?>

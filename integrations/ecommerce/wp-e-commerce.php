@@ -83,10 +83,10 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 	public function viewed_product() {
 
 		$args  = func_get_args();
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( is_singular( 'wpsc-product' ) ) {
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Viewed Product', 'segment' ),
 					'properties' => array(
 						'id'       => get_the_ID(),
@@ -98,7 +98,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 				);
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -141,7 +141,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 	public function added_to_cart() {
 		$args = func_get_args();
 
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( false !== ( $product = Segment_Cookie::get_cookie( 'added_to_cart' ) ) ) {
 
@@ -156,7 +156,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 				'category' => implode( ', ', wp_list_pluck( wpsc_get_product_terms( $product->ID, 'wpsc_product_category' ), 'name' ) ),
 			);
 
-			$track = array(
+			$tracks[] = array(
 				'event'      => __( 'Added Product', 'segment' ),
 				'properties' => $item,
 				'http_event' => 'added_to_cart'
@@ -164,7 +164,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -207,7 +207,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 	public function removed_from_cart() {
 		$args = func_get_args();
 
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( false !== ( $product = Segment_Cookie::get_cookie( 'removed_from_cart' ) ) ) {
 
@@ -222,7 +222,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 				'category' => implode( ', ', wp_list_pluck( wpsc_get_product_terms( $product->ID, 'wpsc_product_category' ), 'name' ) ),
 			);
 
-			$track = array(
+			$tracks[] = array(
 				'event'      => __( 'Removed Product', 'segment' ),
 				'properties' => $item,
 				'http_event' => 'removed_from_cart'
@@ -230,7 +230,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -246,7 +246,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 	 */
 	public function completed_order() {
 		$args  = func_get_args();
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( did_action( 'wpsc_transaction_results_shutdown' ) && isset( $_GET['sessionid'] ) ) {
 
@@ -274,7 +274,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 
 				}
 
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Completed Order', 'segment' ),
 					'properties' => array(
 						'id'       => $log->get( 'id' )        ,
@@ -289,7 +289,7 @@ class Segment_Commerce_WPSC extends Segment_Commerce {
 			}
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 }

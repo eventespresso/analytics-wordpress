@@ -68,13 +68,13 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 	public function viewed_product() {
 
 		$args  = func_get_args();
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( is_singular( 'product' ) ) {
 
 				$product = get_product( get_queried_object_id() );
 
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Viewed Product', 'segment' ),
 					'properties' => array(
 						'id'       => $product->id,
@@ -86,7 +86,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 				);
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -138,12 +138,12 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 	public function added_to_cart() {
 		$args = func_get_args();
 
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( false !== ( $cookie = Segment_Cookie::get_cookie( 'added_to_cart' ) ) ) {
 
 			if ( ! is_object( WC()->cart ) ) {
-				return $track;
+				return $tracks;
 			}
 
 			$_product = json_decode( $cookie );
@@ -161,7 +161,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 						'category' => implode( ', ', wp_list_pluck( wc_get_product_terms( $product->id, 'product_cat' ), 'name' ) ),
 					);
 
-					$track = array(
+					$tracks[] = array(
 						'event'      => __( 'Added Product', 'segment' ),
 						'properties' => $item,
 						'http_event' => 'added_to_cart'
@@ -171,7 +171,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -220,12 +220,12 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 	public function removed_from_cart() {
 		$args = func_get_args();
 
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( false !== ( $cookie = Segment_Cookie::get_cookie( 'removed_from_cart' ) ) ) {
 
 			if ( ! is_object( WC()->cart ) ) {
-				return $track;
+				return $tracks;
 			}
 
 			$_product  = json_decode( $cookie );
@@ -243,7 +243,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 						'category' => implode( ', ', wp_list_pluck( wc_get_product_terms( $product->ID, 'product_cat' ), 'name' ) ),
 					);
 
-					$track = array(
+					$tracks[] = array(
 						'event'      => __( 'Removed Product', 'segment' ),
 						'properties' => $item,
 						'http_event' => 'removed_from_cart'
@@ -252,7 +252,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 			}
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 	/**
@@ -268,7 +268,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 	 */
 	public function completed_order() {
 		$args  = func_get_args();
-		$track = $args[0];
+		$tracks = $args[0];
 
 		if ( did_action( 'woocommerce_thankyou' ) ) {
 
@@ -297,7 +297,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 
 				}
 
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Completed Order', 'segment' ),
 					'properties' => array(
 						'id'       => $order->get_order_number(),
@@ -312,7 +312,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 			}
 		}
 
-		return $track;
+		return $tracks;
 	}
 
 }

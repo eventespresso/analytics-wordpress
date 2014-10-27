@@ -130,7 +130,7 @@ class Segment_Analytics {
 		// Set the proper `library` option so we know where the API calls come from.
 		$options['library'] = 'analytics-wordpress';
 
-		include_once( SEG_FILE_PATH . '/templates/track.php' );
+		include( SEG_FILE_PATH . '/templates/track.php' );
 	}
 
 	/**
@@ -550,10 +550,9 @@ class Segment_Analytics_WordPress {
 		}
 
 		// Track a custom page view event if the current page merits it.
-		$track = $this->get_current_page_track();
+		$tracks = $this->get_current_page_track();
 		$page  = $this->get_current_page();
-
-		if ( $track ) {
+		foreach($tracks as $track ){
 			$http_event = isset( $track['http_event'] ) ? $track['http_event'] : false;
 			self::$instance->analytics->track( $track['event'], $track['properties'], array(), $http_event );
 		}
@@ -784,7 +783,7 @@ class Segment_Analytics_WordPress {
 	private function get_current_page_track() {
 
 		$settings = $this->get_settings();
-
+		$tracks = array();
 		// Login Event
 		// --------
 		if ( $settings['track_logins'] ) {
@@ -794,7 +793,7 @@ class Segment_Analytics_WordPress {
 
 			if ( Segment_Cookie::get_cookie( 'logged_in', $hash ) ) {
 
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Logged In', 'segment' ),
 					'properties' => array(
 						'username'  => $user->user_login,
@@ -821,7 +820,7 @@ class Segment_Analytics_WordPress {
 
 				if ( ! self::is_excluded_post_type() ) {
 					$categories = implode( ', ', wp_list_pluck( get_categories( get_the_ID() ), 'name' ) );
-					$track = array(
+					$tracks[] = array(
 						'event'      => sprintf( __( 'Viewed %s', 'segment' ), ucfirst( get_post_type() ) ),
 						'properties' => array(
 							'title'      => single_post_title( '', false ),
@@ -840,13 +839,13 @@ class Segment_Analytics_WordPress {
 			// recent blog entries. `is_home` only works if it's not a page,
 			// that's why we don't use it.
 			if ( is_front_page() ) {
-				$track = array(
+				$tracks[] = array(
 					'event' => __( 'Viewed Home Page', 'segment' )
 				);
 			}
 			// A normal WordPress page.
 			else if ( is_page() ) {
-				$track = array(
+				$tracks[] = array(
 					'event' => sprintf( __( 'Viewed %s Page', 'segment' ), single_post_title( '', false ) ),
 				);
 			}
@@ -860,7 +859,7 @@ class Segment_Analytics_WordPress {
 			// http://core.trac.wordpress.org/browser/tags/3.5.1/wp-includes/general-template.php#L0
 			if ( is_author() ) {
 			$author = get_queried_object();
-			$track  = array(
+			$tracks[]  = array(
 				'event'      => __( 'Viewed Author Page', 'segment' ),
 				'properties' => array(
 					'author' => $author->display_name
@@ -870,7 +869,7 @@ class Segment_Analytics_WordPress {
 			// A tag archive page. Use `single_tag_title` to get the name.
 			// http://codex.wordpress.org/Function_Reference/single_tag_title
 			else if ( is_tag() ) {
-				$track = array(
+				$tracks[] = array(
 				'event'      => __( 'Viewed Tag Page', 'segment' ),
 				'properties' => array(
 					'	tag' => single_tag_title( '', false )
@@ -880,7 +879,7 @@ class Segment_Analytics_WordPress {
 			// A category archive page. Use `single_cat_title` to get the name.
 			// http://codex.wordpress.org/Function_Reference/single_cat_title
 			else if ( is_category() ) {
-				$track = array(
+				$tracks[] = array(
 				'event'      => __( 'Viewed Category Page', 'segment' ),
 				'properties' => array(
 						'category' => single_cat_title( '', false )
@@ -900,7 +899,7 @@ class Segment_Analytics_WordPress {
 
 				if ( Segment_Cookie::get_cookie( 'left_comment', $hash ) ) {
 
-					$track = array(
+					$tracks[] = array(
 						'event'      => __( 'Commented', 'segment' ),
 						'properties' => array(
 							'commenter' => $commenter
@@ -918,7 +917,7 @@ class Segment_Analytics_WordPress {
 
 			if ( did_action( 'login_init' ) ) {
 
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Viewed Login Page', 'segment' )
 				);
 
@@ -931,7 +930,7 @@ class Segment_Analytics_WordPress {
 		if ( $settings['track_searches'] ) {
 			// The search page.
 			if ( is_search() ) {
-				$track = array(
+				$tracks[] = array(
 					'event'      => __( 'Viewed Search Page', 'segment' ),
 					'properties' => array(
 						'query' => get_query_var( 's' )
@@ -947,7 +946,7 @@ class Segment_Analytics_WordPress {
 
 			add_filter( 'segment_get_current_user_identify', array( self::$instance, 'new_user_identify' ) );
 
-			$track = array(
+			$tracks[] = array(
 				'event'      => __( 'User Signed Up', 'segment' ),
 				'properties' => array(
 					'username'  => $user->user_login,
@@ -961,22 +960,14 @@ class Segment_Analytics_WordPress {
 			);
 
 		}
-
-		// We don't have a page we want to track.
-		if ( ! isset( $track ) ) {
-			$track = false;
-		}
-
-		if ( $track ) {
+		foreach($tracks as $track_info ){
 			// All of these are checking for pages, and we don't want that to throw
 			// off Google Analytics's bounce rate, so mark them `noninteraction`.
-			$track['properties']['noninteraction'] = true;
-
-			// Clean out empty properties before sending it back.
-			$track['properties'] = array_filter( $track['properties'] );
+			$track_info['properties']['noninteraction'] = true;
+			$track_info['properties'] = array_filter( $track_info['properties'] );
 		}
 
-		return apply_filters( 'segment_get_current_page_track', $track, $settings, $this );
+		return apply_filters( 'segment_get_current_page_track', $tracks, $settings, $this );
 	}
 
 	/**
